@@ -1,0 +1,186 @@
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+  
+    <style>
+      * {
+        font-family: sans-serif;
+      }
+      #title {
+        font-size: 30px;
+      }
+    </style>
+  
+    <script>
+        var margin = {top: 50, right: 20, bottom: 30, left: 200},
+            width = 1300 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom,
+            delaytime = 7500;
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "bar-chart")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        data = d3.csv("Webtree1920.csv").then(data => {
+        data.forEach(d => {
+            d.entries = + d.TOTAL_ENTRIES; //converting to a number
+            d.max_enroll = + d.MAX_ENROLL; //converting to a number
+            d.curr_enroll = + d.CURR_ENROLL;
+            d.tree1_branch1 = + d.TREE1_BRANCH1;
+            d.department = d.SUB;
+            });
+
+        avgData = {}
+        const id = d => d.department;
+
+        data.forEach(d => {
+            const curId = id(d);
+            if(!avgData.hasOwnProperty(curId)){
+                avgData[curId] = {
+                    demand_ratio: [],
+                    sparsity_ratio: [],
+                    priority: 0,
+                    label: d.department
+                };
+            }
+            else {
+                avgData[curId].priority += d.tree1_branch1;
+                if (d.max_enroll !== 0) {
+                    avgData[curId].demand_ratio.push(d.entries/d.max_enroll);
+                    avgData[curId].sparsity_ratio.push(d.curr_enroll/d.max_enroll);
+                }
+            }
+        });
+        
+            avgData = d3.values(avgData); //convert to an array
+
+            avgData.forEach(d => {
+                d.demand_ratio = d3.mean(d.demand_ratio)
+                d.sparsity_ratio = d3.mean(d.sparsity_ratio)
+            });
+
+            // Sort data
+            avgData.sort((a,b) => {
+                return d3.ascending(a.label, b.label);
+            })
+            console.log(avgData)
+
+            const x = d3.scaleBand()
+                .rangeRound([0, width])
+                .padding(0.1)
+                .domain(avgData.map(d => d.label));
+            
+            const y_demand = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.demand_ratio)])
+
+            const y_sparsity = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.sparsity_ratio)])
+
+            const y_priority = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.priority)])
+
+            const max = d3.max(avgData, d=> d.demand_ratio);
+            
+            blueColorScale = d3.scaleLinear()
+                .domain([0,max])
+                .range(["#A0D2E7","#3D60A7"])
+
+            orangeColorScale = d3.scaleLinear()
+                .domain([0,max])
+                .range(["#fd9f0f","#ed300c"])
+
+            const entries = svg.selectAll("g")
+                .data(avgData)
+                .enter()
+                    .append("g");
+            
+            entries.each(function(d, i) {
+                const entry = d3.select(this);
+                entry.append("rect")
+                    .attr("class", "bar")
+                    .attr("x", x(d.label))
+                    .attr("width", x.bandwidth())
+                    .attr("y", y_demand(d.demand_ratio))
+                    .attr("height", height - y_demand(d.demand_ratio))
+                    .style("fill", blueColorScale(d.demand_ratio))
+                    .transition()
+                    .delay(delaytime)
+                        .attr("y", y_sparsity(d.sparsity_ratio))
+                        .attr("height", height - y_sparsity(d.sparsity_ratio))
+                        .style("fill", orangeColorScale(d.sparsity_ratio))
+                    .transition()
+                    .delay(delaytime)
+                        .attr("y", y_priority(d.priority))
+                        .attr("height", height - y_priority(d.priority))
+                        .style("fill", blueColorScale(d.priority))
+            })
+
+            svg.append("g")
+                .attr("transform",  "translate(" + "0" + "," + height + ")")
+                .call(d3.axisBottom(x));
+            svg.append("g")
+                .call(d3.axisLeft(y_demand));
+            svg.append("text")
+                .attr("y", height + 30)
+                .attr("x", width/2)
+                .text("Year")
+            svg.append("text")
+                .attr("y", height/2 + 30)
+                .attr("x", -margin.left + 10)
+                .text("Avg Rain in mm")
+                .transition()
+                .delay(delaytime)
+                    .text("Avg Sunshine in hours")
+            svg.append("text")
+                .attr("y", 0)
+                .attr("x", 60)
+                .attr('class',"title")
+                .text("Avg Rainfall in Australia measured in mm from the year 2007 to 2017")
+                .transition()
+                .delay(delaytime)
+                    .text("Avg Daily Sunshine in Australia measured in hours from the year 2007 to 2017")
+        });
+        
+        // Sparsity Bar Chart 
+        var svg1 = d3.select("body").append("svg1")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "bar-chart")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+        const entries = svg1.selectAll("g")
+            .data(avgData)
+            .enter()
+                .append("g");
+    
+        entries.each(function(d, i) {
+        const entry = d3.select(this);
+        entry.append("rect")
+            .attr("class", "bar")
+            .attr("x", x(d.label))
+            .attr("width", x.bandwidth())
+            .attr("y", y_demand(d.demand_ratio))
+            .attr("height", height - y_demand(d.demand_ratio))
+            .style("fill", blueColorScale(d.demand_ratio))
+            .transition()
+            .delay(delaytime)
+                .attr("y", y_sparsity(d.sparsity_ratio))
+                .attr("height", height - y_sparsity(d.sparsity_ratio))
+                .style("fill", orangeColorScale(d.sparsity_ratio))
+            .transition()
+            .delay(delaytime)
+                .attr("y", y_priority(d.priority))
+                .attr("height", height - y_priority(d.priority))
+                .style("fill", blueColorScale(d.priority))
+            })
+
+
+    </script>
+  </body>
+  

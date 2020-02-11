@@ -1,0 +1,339 @@
+<body>
+
+    <h1>
+        What department is the most popular at Davidson College?
+    </h1>
+
+    <p>
+        Knowing what department is the most popular at a school can 
+        offer information on the student body 
+        and focus of the school. Because of this, it can 
+        be an important statistic for prospective students, current 
+        students, and instituional representatives. So, what department 
+        is the most popular department at Davidson College?
+    </p>
+
+    <p id="demand">
+        This is obviously quite a complex question to answer, so let's 
+        break it down. An intuitive place to start is with demand, 
+        since demand and popularity should be correlated. 
+        The demand for classes within a certain department 
+        can be thought of as the total number of times students put a 
+        department's course on their webtree. Now if we were to use solely 
+        the sum, larger departments would be advantaged. So we can normalize
+        by diving the total entries for each course by the maximum enroll size.
+        This gives a statistic conveying on average how many students want
+        each spot available in a departmental classroom. 
+    </p>
+
+    <p id="fullness">
+        The top three departments in this statistic are communications, 
+        health and human values, and biology. Now just because students 
+        are trying to get into these classes does not necessarily mean 
+        that they are attending them. Therefore, we can look at a 'fullness'
+        statistic, which is the average ratio of students enrolled to the 
+        maximum capacity. This will tell us how "full" on average the classes 
+        within each department are. 
+
+    </p >
+
+    <p id="priority">
+        Looking at our 'fullness' statistic, we see that our previous top three
+        are no longer the highest in terms of how full they are. Of the three, 
+        biology is the highest being around 95% full. Communications is still 
+        quite full with around 90% but HHV is at around 75%. It's interesting
+        to note that psychology is over capacity on average and could indicate
+        a need for more faculty and classes offered. Now that we have a sense 
+        for demand and how full classes are, we can take a look at how much 
+        students prioritize getting into a certain department's class. To do
+        this, we can sum up the number of students who placed a department's
+        class in their highest priority. 
+    </p>
+
+    <p>
+        In our priority statistic, our clear winners are biology and economics. 
+        Suddenly, communications and hhv have dropped to be extremely low compared 
+        to other departments meaning that on average students do not feel the need 
+        to place a course from one of those two departmens as their highest priority. 
+        This can be a signal that it is relatively less competitive to get into a 
+        class for communications and hhv whereas it is highly competitive in biology. 
+        From personal experience and anecdotes from friends, the economics department 
+        has several 'bottleneck' courses that are extremely difficult to get into which 
+        can explain the high priority for economics but its relatively low demand. 
+    </p>
+
+    <p>
+        Overall, there is no clear winner in all three statistics but biology
+        ranks highly consistenly in all three measures, and is especially high in both 
+        'fullness' and priority. On average, there are more than 6 students competing for each 
+        available spot in a biology classroom, biology classrooms are arond 95% full, 
+        and almost 500 students (around 28% of student body population) placed a biology 
+        class as their highest priority. This makes sense considering the popularity and 
+        success of the pre-med track at Davidson in conjunction with how long the biology 
+        department has existed, and its amazing facilities in Wall. Therefore, I believe 
+        biology is the winner for the most popular department at Davidson. 
+    </p>
+
+    <p>
+        I think it would be informative and interesting for future studies to analyze the 
+        popularity of departments at Davidson College over time. In this analysis, we are 
+        only looking at one year's worth of data so we cannot see trends over time. Understanding
+        which departments are growing in popularity could help the College in deciding how to invest
+        and allocate its resources with changing interests from the student body. I would suspect that 
+        computer science, a very young department at Davidson would be at the forefront in growing 
+        popularity. 
+    </p>
+
+    <p>
+        The choice of using colored bar charts was intentional for the vizualizations above. 
+        A bar chart is a great way to help vizualize the different statistics because it allows
+        the audience to easily distinguish the differences between the departments, especially 
+        making the extreme values noticeable. 'We know that what makes a feature distinct is that it 
+        differs from the surrounding feature in terms of the signal it provides to the low-level
+        feature-processing mechanisms in the primary visual cortex' (Ware 30). In the case of the 
+        bar chart, the distinctive low-level features are the differences in size for each bar and
+        the differences in color of each bar. These are on an intuitive scale where a larger sized 
+        bar and a darker color indicate more importance. I personally found that my eye 
+        movement with bar charts feels very natural. I typically start in the left and continue to the
+        right while moving up and down with the peaks. I find that after my initial scan, I am drawn 
+        to the highest values, which are the most important in my vizualization. This is probably because 
+        I recognize the highest values to be the 'likely neighborhood of a target' (Ware 38). 
+    </p>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+  
+    <!-- Append after div tage in html -->
+
+    <style>
+        h1,p {
+            text-align: center;
+            }
+        * {
+        font-family: sans-serif;
+            }
+        #title {
+        font-size: 30px;
+            }
+    </style>
+  
+    <script>
+        var margin = {top: 50, right: 20, bottom: 30, left: 180},
+            width = 1300 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom,
+            delaytime = 7500;
+
+        var svg = d3.select("#demand").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "bar-chart")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var svg2 = d3.select("#fullness").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "bar-chart")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var svg3 = d3.select("#priority").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "bar-chart")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        data = d3.csv("Webtree1920.csv").then(data => {
+        data.forEach(d => {
+            d.entries = + d.TOTAL_ENTRIES; //converting to a number
+            d.max_enroll = + d.MAX_ENROLL; //converting to a number
+            d.curr_enroll = + d.CURR_ENROLL;
+            d.tree1_branch1 = + d.TREE1_BRANCH1;
+            d.department = d.SUB;
+            });
+
+        avgData = {}
+        const id = d => d.department;
+
+        data.forEach(d => {
+            const curId = id(d);
+            if(!avgData.hasOwnProperty(curId)){
+                avgData[curId] = {
+                    demand_ratio: [],
+                    fullness_ratio: [],
+                    priority: 0,
+                    label: d.department
+                };
+            }
+            else {
+                avgData[curId].priority += d.tree1_branch1;
+                if (d.max_enroll !== 0) {
+                    avgData[curId].demand_ratio.push(d.entries/d.max_enroll);
+                    avgData[curId].fullness_ratio.push(d.curr_enroll/d.max_enroll);
+                }
+            }
+        });
+        
+            avgData = d3.values(avgData); //convert to an array
+
+            avgData.forEach(d => {
+                d.demand_ratio = d3.mean(d.demand_ratio)
+                d.fullness_ratio = d3.mean(d.fullness_ratio)
+            });
+
+            // Sort for demand ratio
+            avgData.sort((a,b) => {
+                return d3.descending(a.demand_ratio, b.demand_ratio);
+            })
+
+            const x = d3.scaleBand()
+                .rangeRound([0, width])
+                .padding(0.1)
+                .domain(avgData.map(d => d.label));
+            
+            const y_demand = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.demand_ratio)])
+
+            const y_fullness = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.fullness_ratio)])
+
+            const y_priority = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.priority)])
+
+            const max_demand = d3.max(avgData, d=> d.demand_ratio);
+            const max_fullness = d3.max(avgData, d=> d.fullness_ratio);
+            const max_priority = d3.max(avgData, d=> d.priority);
+
+            blueColorScale = d3.scaleLinear()
+                .domain([0,max_demand])
+                .range(["#A0D2E7","#3D60A7"])
+
+            orangeColorScale = d3.scaleLinear()
+                .domain([0,max_fullness])
+                .range(["#ffeda0","#f03b20"])
+
+            greenColorScale = d3.scaleLinear()
+                .domain([0,max_priority])
+                .range(["#e5f5e0","#31a354"])
+
+            const entries = svg.selectAll("g")
+                .data(avgData)
+                .enter()
+                    .append("g");
+            
+            entries.each(function(d, i) {
+                const entry = d3.select(this);
+                entry.append("rect")
+                    .attr("class", "bar")
+                    .attr("x", x(d.label))
+                    .attr("width", x.bandwidth())
+                    .attr("y", y_demand(d.demand_ratio))
+                    .attr("height", height - y_demand(d.demand_ratio))
+                    .style("fill", blueColorScale(d.demand_ratio))
+            })
+
+            svg.append("g")
+                .attr("transform",  "translate(" + "0" + "," + height + ")")
+                .call(d3.axisBottom(x));
+            svg.append("g")
+                .call(d3.axisLeft(y_demand));
+            svg.append("text")
+                .attr("y", height + 30)
+                .attr("x", width/2)
+                .text("Department")
+            svg.append("text")
+                .attr("y", height/2 + 30)
+                .attr("x", -margin.left + 10)
+                .text("Total Entries/Max Enroll")
+            svg.append("text")
+                .attr("y", 0)
+                .attr("x", 60)
+                .attr('class',"title")
+                .text("Most in demand classes measured by ratio of total entries to max enroll")
+            
+            avgData.sort((a,b) => {
+                return d3.ascending(a.fullness_ratio, b.fullness_ratio);
+            })
+
+            const entries2 = svg2.selectAll("g")
+                .data(avgData)
+                .enter()
+                    .append("g");
+            
+            entries2.each(function(d, i) {
+                const entry = d3.select(this);
+                entry.append("rect")
+                    .attr("class", "bar")
+                    .attr("x", x(d.label))
+                    .attr("width", x.bandwidth())
+                    .attr("y", y_fullness(d.fullness_ratio))
+                    .attr("height", height - y_fullness(d.fullness_ratio))
+                    .style("fill", orangeColorScale(d.fullness_ratio))
+                })
+            
+            svg2.append("g")
+                .attr("transform",  "translate(" + "0" + "," + height + ")")
+                .call(d3.axisBottom(x));
+            svg2.append("g")
+                .call(d3.axisLeft(y_fullness));
+            svg2.append("text")
+                .attr("y", height + 30)
+                .attr("x", width/2)
+                .text("Department")
+            svg2.append("text")
+                .attr("y", height/2 + 30)
+                .attr("x", -margin.left + 10)
+                .text("Curr Enroll/Max Enroll")
+            svg2.append("text")
+                .attr("y", 0)
+                .attr("x", 60)
+                .attr('class',"title")
+                .text("Department course fullness shown as average of students currently enrolled/max students for each department")
+
+            avgData.sort((a,b) => {
+                return d3.descending(a.priority, b.priority);
+            })
+
+            const entries3 = svg3.selectAll("g")
+                    .data(avgData)
+                    .enter()
+                        .append("g");
+            
+            entries3.each(function(d, i) {
+                const entry = d3.select(this);
+                entry.append("rect")
+                    .attr("class", "bar")
+                    .attr("x", x(d.label))
+                    .attr("width", x.bandwidth())
+                    .attr("y", y_priority(d.priority))
+                    .attr("height", height - y_priority(d.priority))
+                    .style("fill", greenColorScale(d.priority))
+                })
+            
+            svg3.append("g")
+                .attr("transform",  "translate(" + "0" + "," + height + ")")
+                .call(d3.axisBottom(x));
+            svg3.append("g")
+                .call(d3.axisLeft(y_priority));
+            svg3.append("text")
+                .attr("y", height + 30)
+                .attr("x", width/2)
+                .text("Department")
+            svg3.append("text")
+                .attr("y", height/2 + 30)
+                .attr("x", -margin.left + 10)
+                .text("Students")
+            svg3.append("text")
+                .attr("y", 0)
+                .attr("x", 60)
+                .attr('class',"title")
+                .text("Priority students place on department by the sum of all students tree1branch1 by department")
+        });
+
+
+    </script>
+  </body>
+  

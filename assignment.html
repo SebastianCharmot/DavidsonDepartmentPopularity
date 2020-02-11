@@ -1,0 +1,132 @@
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+  
+    <style>
+      * {
+        font-family: sans-serif;
+      }
+      #title {
+        font-size: 30px;
+      }
+    </style>
+  
+    <script>
+        var margin = {top: 50, right: 20, bottom: 30, left: 200},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom,
+            delaytime = 7500;
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "bar-chart")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        data = d3.csv("weatherAUS.csv").then(data => {
+        data.forEach(d => {
+            d.year = + 20 + d.Date.substring(d.Date.length -2, d.Date.length); //converting to a number
+            d.rain = + d.Rainfall; //converting to a number
+            d.sunshine = d.Sunshine
+            });
+
+        avgData = {}
+        const id = d => d.year;
+
+        data.forEach(d => {
+            const curId = id(d);
+            if(!avgData.hasOwnProperty(curId)){
+                avgData[curId] = {
+                    year: d.year,
+                    rain: [],
+                    sunshine: [],
+                    label: d.year
+                };
+            }
+            avgData[curId].rain.push(d.rain);
+            if (d.sunshine !== "NA"){
+                avgData[curId].sunshine.push(d.sunshine);
+            }
+        });
+            avgData = d3.values(avgData); //convert to an array
+
+            avgData.forEach(d => {
+                d.rain = d3.mean(d.rain)
+                d.sunshine = d3.mean(d.sunshine)
+            });
+
+            // Sort data
+            avgData.sort((a,b) => {
+                return d3.ascending(a.year, b.year);
+            })
+            console.log(avgData)
+
+            const x = d3.scaleBand()
+                .rangeRound([0, width])
+                .padding(0.1)
+                .domain(avgData.map(d => d.label));
+            
+            const y = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0,d3.max(avgData, d => d.sunshine)])
+
+            const max = d3.max(avgData, d=> d.sunshine);
+            
+            blueColorScale = d3.scaleLinear()
+                .domain([0,max])
+                .range(["#A0D2E7","#3D60A7"])
+
+            orangeColorScale = d3.scaleLinear()
+                .domain([0,max])
+                .range(["#fd9f0f","#ed300c"])
+
+            const entries = svg.selectAll("g")
+                .data(avgData)
+                .enter()
+                    .append("g");
+            
+            entries.each(function(d, i) {
+                const entry = d3.select(this);
+                entry.append("rect")
+                    .attr("class", "bar")
+                    .attr("x", x(d.label))
+                    .attr("width", x.bandwidth())
+                    .attr("y", y(d.rain))
+                    .attr("height", height - y(d.rain))
+                    .style("fill", blueColorScale(d.rain))
+                    .transition()
+                    .delay(delaytime)
+                        .attr("y", y(d.sunshine))
+                        .attr("height", height - y(d.sunshine))
+                        .style("fill", orangeColorScale(d.rain))
+            })
+
+            svg.append("g")
+                .attr("transform",  "translate(" + "0" + "," + height + ")")
+                .call(d3.axisBottom(x));
+            svg.append("g")
+                .call(d3.axisLeft(y));
+            svg.append("text")
+                .attr("y", height + 30)
+                .attr("x", width/2)
+                .text("Year")
+            svg.append("text")
+                .attr("y", height/2 + 30)
+                .attr("x", -margin.left + 10)
+                .text("Avg Rain in mm")
+                .transition()
+                .delay(delaytime)
+                    .text("Avg Sunshine in hours")
+            svg.append("text")
+                .attr("y", 0)
+                .attr("x", 60)
+                .attr('class',"title")
+                .text("Avg Rainfall in Australia measured in mm from the year 2007 to 2017")
+                .transition()
+                .delay(delaytime)
+                    .text("Avg Daily Sunshine in Australia measured in hours from the year 2007 to 2017")
+        });
+
+    </script>
+  </body>
+  
